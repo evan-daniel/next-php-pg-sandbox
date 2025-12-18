@@ -1,0 +1,33 @@
+# general 
+.DS_Store
+*.pem
+.env*
+
+# presentation 
+/presentation/app/node_modules
+/presentation/app/.pnp
+/presentation/app/.pnp.*
+/presentation/app/.yarn/*
+!/presentation/app/.yarn/patches
+!/presentation/app/.yarn/plugins
+!/presentation/app/.yarn/releases
+!/presentation/app/.yarn/versions
+
+# testing
+/presentation/app/coverage
+
+# next.js
+/presentation/app/.next/
+/presentation/app/out/
+
+# production
+/presentation/app/build
+
+# debug
+/presentation/app/npm-debug.log*
+/presentation/app/yarn-debug.log*
+/presentation/app/yarn-error.log*
+/presentation/app/.pnpm-debug.log*
+
+# typescript
+/presentation/app/*.tsbuildinfo
