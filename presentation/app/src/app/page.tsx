@@ -8,10 +8,12 @@ export default function Home() {
   const [user, setUser] = useState<User>(() => new Unauthenticated()); 
   const [dto, setDto] = useState<UserDTO | null>(null); 
   const [error, setError] = useState<string>(''); 
+  const [userList, setUserList] = useState<UserDTO[] | null>(null); 
 
   const onCreate = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); 
     setError(''); 
+    setUserList(null); 
     const form = new FormData(e.currentTarget); 
     
     let candidate: UserDTO = {
@@ -34,6 +36,7 @@ export default function Home() {
   const onSignIn = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); 
     setError(''); 
+    setUserList(null); 
     const form = new FormData(e.currentTarget); 
     
     let candidate: UserDTO = {
@@ -56,14 +59,20 @@ export default function Home() {
   const onListUsers = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); 
     setError(''); 
+    setUserList(null); 
 
     try {
       if(dto === null) {
         setError('Must be logged in to list users'); 
         return; 
       }
-      const users = user.listUsers(dto as UserDTO); 
+      const users = await user.listUsers(dto as UserDTO); 
       console.log(users); 
+      if(users === null) {
+        setError('Error listing users'); 
+        return; 
+      }
+      setUserList(users as UserDTO[]); 
     } catch(err) {
       setError(err instanceof Error ? err.message : 'Error listing users'); 
     }
@@ -72,6 +81,7 @@ export default function Home() {
   const onSignOut = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); 
     setError(''); 
+    setUserList(null); 
     
     if(dto === null) {
       setError('Not signed in but trying to sign out.'); 
@@ -85,6 +95,8 @@ export default function Home() {
   const onDeleteAccount = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); 
     setError(''); 
+    setUserList(null); 
+    
     if(dto === null) {
       setError('Not signed in but trying to delete account.'); 
     }
@@ -158,6 +170,17 @@ export default function Home() {
           <div>Email: {dto?.email ?? ''}</div>
           <div>Time Created: {dto?.createdAt ?? ''} </div>
           <div>Error: {error}</div>
+          <div>
+            Users (id, name, email, timestamp): 
+            {userList && <div className={styles['user-list']}>
+              {userList.map(user => <div key={user.id}>
+                <span>{user.id},</span>
+                <span>{user.name},</span>
+                <span>{user.email},</span>
+                <span>{user.createdAt},</span>
+              </div>)}
+            </div>}
+          </div>
         </div>
       </main>
       <footer className={styles.footer}>Sample Next.js/PHP/PostgreSQL app</footer> 

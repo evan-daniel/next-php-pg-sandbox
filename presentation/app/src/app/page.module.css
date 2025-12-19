@@ -32,6 +32,15 @@
   margin-left: 10.67vw; 
 }
 
+.user-list {
+  font-size: 0.8em; 
+  background-color: #DDD; 
+}
+
+.user-list span {
+  margin: 0 0.33ch; 
+}
+
 .footer {
   margin-top: auto; 
 
