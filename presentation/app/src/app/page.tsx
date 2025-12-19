@@ -1,14 +1,114 @@
+'use client'; 
+
+import { useState } from "react";
+import styles from "./page.module.css"; 
+import { Unauthenticated, type User, type UserDTO } from "@/lib/api/api";
+
 export default function Home() {
+  const [user, setUser] = useState<User>(() => new Unauthenticated()); 
+  const [dto, setDto] = useState<UserDTO | null>(null); 
+  const [error, setError] = useState<string>(''); 
+
+  const onCreate = async(e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); 
+    const form = new FormData(e.currentTarget); 
+    
+    let candidate: UserDTO = {
+      id: -1, 
+      name: String(form.get('name')), 
+      email: String(form.get('email')), 
+      password: String(form.get('password')), 
+      createdAt: '', 
+    } 
+    
+    try {
+      const _dto = await user.create(candidate); 
+      setDto(_dto); 
+    } catch(err) {
+      setError(err instanceof Error ? err.message : 'error'); 
+    }
+  }
+
+  const onSignIn = async(e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); 
+    const form = new FormData(e.currentTarget); 
+    
+    let candidate: UserDTO = {
+      id: -1, 
+      name: '', 
+      email: String(form.get('email')), 
+      password: String(form.get('password')), 
+      createdAt: '', 
+    } 
+    
+    try {
+      const _dto = await user.signIn(candidate); 
+      setDto(_dto); 
+    } catch(err) {
+      setError(err instanceof Error ? err.message : 'error'); 
+    }
+  }
+  
   return (
-    <div>
-      <main>
-        <div>
-          This and that. 
-        </div>
-        <div>
-          And the other. 
+    <div className={styles.page}>
+      <main className={styles.main}>
+        <div className={styles['account-cards']}>
+          <div className={styles['account-card']}>
+            <h2>Create Account</h2>
+            <form onSubmit={onCreate}>
+                <div>
+                  <input type="text" name="name" placeholder="name" required /> 
+                </div>
+                <div>
+                  <input type="text" name="email" placeholder="email" required /> 
+                </div>
+                <div>
+                  <input type="text" name="password" placeholder="password" required /> 
+                </div>
+                <input type="submit" value="Submit" /> 
+            </form>
+          </div>
+          <div className={styles['account-card']}>
+            <h2>Sign In</h2>
+            <form onSubmit={onSignIn}>
+                <div>
+                  <input type="text" name="email" placeholder="email" required /> 
+                </div>
+                <div>
+                  <input type="text" name="password" placeholder="password" required /> 
+                </div>
+                <input type="submit" value="Submit" /> 
+            </form>
+          </div>
+          <div className={styles['account-card']}>
+            <h2>List All Users</h2>
+            <form>
+                <input type="submit" value="Submit" /> 
+            </form>
+          </div>
+          <div className={styles['account-card']}>
+            <h2>Sign Out</h2>
+            <form>
+                <input type="submit" value="Submit" /> 
+            </form>
+          </div>
+          <div className={styles['account-card']}>
+            <h2>Delete Account</h2>
+            <form>
+                <input type="submit" value="Submit" /> 
+            </form>
+          </div>
+        </div> 
+
+        <div className={styles['user-state']}>
+          <div>ID: {dto?.id ?? ''}</div>
+          <div>Name: {dto?.name ?? ''}</div>
+          <div>Email: {dto?.email ?? ''}</div>
+          <div>Time Created: {dto?.createdAt ?? ''} </div>
+          <div>Error: {error}</div>
         </div>
       </main>
+      <footer className={styles.footer}>Sample Next.js/PHP/PostgreSQL app</footer> 
     </div>
   );
 }
