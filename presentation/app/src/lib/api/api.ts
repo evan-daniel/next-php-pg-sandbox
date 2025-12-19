@@ -28,9 +28,9 @@ export interface User {
 export class Unauthenticated implements User {
     async create(user: UserDTO): Promise<UserDTO> {
         const res: ApiResponse<UserDTO> = await apiCall<UserDTO>('http://localhost:8000/create-account', {
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify(user), 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(user), 
         }); 
         console.log(res); 
         if(res.status < 200 || 300 <= res.status) throw new Error('Failed to create account'); 
@@ -39,8 +39,8 @@ export class Unauthenticated implements User {
 
     async signIn(user: UserDTO): Promise<UserDTO> {
         const res: ApiResponse<UserDTO> = await apiCall<UserDTO>('http://localhost:8000/sign-in', {
-                method: 'POST', 
-                body: JSON.stringify(user), 
+            method: 'POST', 
+            body: JSON.stringify(user), 
         }); 
         if(res.status < 200 || 300 <= res.status) throw new Error('Failed to log in'); 
         return res.data; 
@@ -56,5 +56,34 @@ export class Unauthenticated implements User {
 
     async delete(user: UserDTO): Promise<boolean> {
         throw new Error('Not allowed: must be signed in to delete user.')
+    }
+}
+
+export class Authenticated implements User {
+    async create(user: UserDTO): Promise<UserDTO> {
+        throw new Error('Not allowed: you must sign out to create a new account.'); 
+    }
+    
+    async signIn(user: UserDTO): Promise<UserDTO> {
+        throw new Error('Not allowed: you must be signed out to sign in.'); 
+    }
+
+    async listUsers(user: UserDTO): Promise<UserDTO[]> {
+        throw new Error('Not allowed: must be signed in to list users.')
+    }
+
+    async signOut(user: UserDTO): Promise<UserDTO> {
+        return {id: -1, name: '', email: '', password: '', createdAt: ''} as UserDTO; 
+    }
+
+    async delete(user: UserDTO): Promise<boolean> {
+        const res: ApiResponse<boolean> = await apiCall<boolean>('http://localhost:8000/delete-account', {
+            method: 'POST', 
+            body: JSON.stringify(user), 
+        }); 
+        if(res.status < 200 || 300 <= res.status) {
+            throw new Error('Unable to delete user.'); 
+        }
+        return res.data; 
     }
 }

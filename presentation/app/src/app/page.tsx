@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import styles from "./page.module.css"; 
-import { Unauthenticated, type User, type UserDTO } from "@/lib/api/api";
+import { Unauthenticated, Authenticated, type User, type UserDTO } from "@/lib/api/api";
 
 export default function Home() {
   const [user, setUser] = useState<User>(() => new Unauthenticated()); 
@@ -11,6 +11,7 @@ export default function Home() {
 
   const onCreate = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); 
+    setError(''); 
     const form = new FormData(e.currentTarget); 
     
     let candidate: UserDTO = {
@@ -24,6 +25,7 @@ export default function Home() {
     try {
       const _dto = await user.create(candidate); 
       setDto(_dto); 
+      setUser(new Authenticated()); 
     } catch(err) {
       setError(err instanceof Error ? err.message : 'error'); 
     }
@@ -31,6 +33,7 @@ export default function Home() {
 
   const onSignIn = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); 
+    setError(''); 
     const form = new FormData(e.currentTarget); 
     
     let candidate: UserDTO = {
@@ -44,8 +47,41 @@ export default function Home() {
     try {
       const _dto = await user.signIn(candidate); 
       setDto(_dto); 
+      setUser(new Authenticated()); 
     } catch(err) {
       setError(err instanceof Error ? err.message : 'error'); 
+    }
+  }
+
+  const onSignOut = async(e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); 
+    setError(''); 
+    
+    if(dto === null) {
+      setError('Not signed in but trying to sign out.'); 
+      return; 
+    }
+    const _dto = await user.signOut(dto as UserDTO); 
+    setDto(_dto); 
+    setUser(new Unauthenticated()); 
+  }
+
+  const onDeleteAccount = async(e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); 
+    setError(''); 
+    if(dto === null) {
+      setError('Not signed in but trying to delete account.'); 
+    }
+    try {
+      const success = user.delete(dto as UserDTO); 
+      if(!success) {
+        setError('unable to delete account'); 
+        return; 
+      }
+      setDto(null); 
+      setUser(new Unauthenticated()); 
+    } catch(err) {
+      setError(err instanceof Error ? err.message : 'error deleting user'); 
     }
   }
   
@@ -88,13 +124,13 @@ export default function Home() {
           </div>
           <div className={styles['account-card']}>
             <h2>Sign Out</h2>
-            <form>
+            <form onSubmit={onSignOut}>
                 <input type="submit" value="Submit" /> 
             </form>
           </div>
           <div className={styles['account-card']}>
             <h2>Delete Account</h2>
-            <form>
+            <form onSubmit={onDeleteAccount}>
                 <input type="submit" value="Submit" /> 
             </form>
           </div>

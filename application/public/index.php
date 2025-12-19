@@ -26,6 +26,10 @@ switch($path) {
         sign_in(); 
         break; 
 
+    case '/delete-account': 
+        delete_account(); 
+        break; 
+
     default: 
         http_response_code(404); 
         header('Content-Type: application/json'); 
@@ -65,9 +69,7 @@ function create_account() {
     $password = $input['password'] ?? ''; 
 
     if($name === '' || $email === '' || $password === '') {
-        http_response_code(400); 
-        echo json_encode(['data' => null, 'error' => 'Missing required fields']); 
-        exit; 
+        json_err(400, 'Missing required fields'); 
     }
 
     try {
@@ -99,5 +101,78 @@ function create_account() {
 }
 
 function sign_in() {
+    $input = json_decode(file_get_contents('php://input'), true); 
+    if (!is_array($input)) {
+        json_err(400, 'Invalid JSON');
+    }
+    
+    $email = trim($input['email'] ?? ''); 
+    $password = $input['password'] ?? ''; 
 
+    if($email === '' || $password === '') {
+        json_err(400, 'Missing required fields'); 
+    }
+
+    try {
+        $pdo = db(); 
+        $stmt = $pdo->prepare("
+            SELECT * FROM users 
+            WHERE EMAIL = :email 
+            LIMIT 1
+        "); 
+        $stmt->execute([
+            ':email' => $email, 
+        ]); 
+        $row = $stmt->fetch(); 
+        if(!$row) {
+            json_err(400, 'User does not exist'); 
+        }
+
+        if($password !== $row['password']) {
+            json_err(400, 'Invalid passwd'); 
+        } 
+
+        json_ok(200, [
+            'id' => (int)$row['id'], 
+            'name' => $row['name'], 
+            'email' => $row['email'], 
+            'createdAt' => $row['created_at'], 
+        ]); 
+    } catch(PDOException $e) {
+        json_err(500, $e->getMessage()); 
+    }
+}
+
+function delete_account() {
+    $input = json_decode(file_get_contents('php://input'), true); 
+    if(!is_array($input)) {
+        json_err(400, 'Invalid JSON'); 
+    }
+
+    $email = trim($input['email'] ?? ''); 
+    if($email === '') {
+        json_err(400, 'Email not provided.'); 
+    }
+
+    try {
+        $pdo = db(); 
+        $stmt = $pdo->prepare("
+            DELETE FROM users 
+            WHERE EMAIL = :email 
+        "); 
+        $stmt->execute([
+            ':email' => $email, 
+        ]); 
+        $deleted = $stmt->rowCount(); 
+
+        if($deleted === 0) {
+            json_err(404, 'Invalid email'); 
+        }
+
+        http_response_code(200); 
+        echo true; 
+        exit; 
+    } catch(PDOException $e) {
+        json_err(500, $e->getMessage()); 
+    }
 }
