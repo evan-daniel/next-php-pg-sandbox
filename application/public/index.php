@@ -30,6 +30,10 @@ switch($path) {
         delete_account(); 
         break; 
 
+    case '/list-users': 
+        list_users(); 
+        break; 
+
     default: 
         http_response_code(404); 
         header('Content-Type: application/json'); 
@@ -138,6 +142,32 @@ function sign_in() {
             'email' => $row['email'], 
             'createdAt' => $row['created_at'], 
         ]); 
+    } catch(PDOException $e) {
+        json_err(500, $e->getMessage()); 
+    }
+}
+
+function list_users() {
+    $input = json_decode(file_get_contents('php://input'), true); 
+    if(!is_array($input)) {
+        json_err(400, 'Invalid JSON'); 
+    }
+    
+    try {
+        $pdo = db(); 
+        $stmt = $pdo->prepare("SELECT * FROM users"); 
+        $stmt->execute([]); 
+
+        $users = []; 
+        while($row = $stmt->fetch()) {
+            $users[] = [
+                'id' => (int)$row['id'], 
+                'name' => $row['name'], 
+                'email' => $row['email'], 
+                'createdAt' => $row['created_at'], 
+            ]; 
+        } 
+        json_ok(200, $users); 
     } catch(PDOException $e) {
         json_err(500, $e->getMessage()); 
     }

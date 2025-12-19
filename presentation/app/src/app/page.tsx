@@ -53,6 +53,22 @@ export default function Home() {
     }
   }
 
+  const onListUsers = async(e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); 
+    setError(''); 
+
+    try {
+      if(dto === null) {
+        setError('Must be logged in to list users'); 
+        return; 
+      }
+      const users = user.listUsers(dto as UserDTO); 
+      console.log(users); 
+    } catch(err) {
+      setError(err instanceof Error ? err.message : 'Error listing users'); 
+    }
+  }
+
   const onSignOut = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); 
     setError(''); 
@@ -118,7 +134,7 @@ export default function Home() {
           </div>
           <div className={styles['account-card']}>
             <h2>List All Users</h2>
-            <form>
+            <form onSubmit={onListUsers}>
                 <input type="submit" value="Submit" /> 
             </form>
           </div>

@@ -69,7 +69,12 @@ export class Authenticated implements User {
     }
 
     async listUsers(user: UserDTO): Promise<UserDTO[]> {
-        throw new Error('Not allowed: must be signed in to list users.')
+        const res: ApiResponse<UserDTO[]> = await apiCall<UserDTO[]>('http://localhost:8000/list-users', {
+            method: 'POST', 
+            body: JSON.stringify(user), 
+        }); 
+        if(res.status < 200 || 300 <= res.status) throw new Error('Failed to get all users from backend'); 
+        return res.data; 
     }
 
     async signOut(user: UserDTO): Promise<UserDTO> {
